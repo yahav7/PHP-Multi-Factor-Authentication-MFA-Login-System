@@ -1,0 +1,35 @@
+version: '3'
+services:
+  db: 
+    image: mysql:latest
+    environment:
+      MYSQL_DATABASE: php_docker
+      MYSQL_USER: php_docker
+      MYSQL_PASSWORD: password # Consider using Docker secrets or environment variables for production
+      MYSQL_ROOT_PASSWORD: rootpassword # Add root password for MySQL
+    volumes:
+      - "./db:/var/lib/mysql" # Persist MySQL data
+
+  www:
+    image: php:apache
+    volumes:
+      - "./:/var/www/html" # Sync the current dir on local machine to the dir of container
+    ports:
+      - "80:80"
+      - "443:443" # For future SSL traffic
+    depends_on:
+      - db
+    command: bash -c "docker-php-ext-install mysqli && apache2-foreground" # Install mysqli extension
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "8080:80" # Change port to 8080 for accessibility
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+    depends_on:
+      - db
+
+volumes:
+  dbdata:
